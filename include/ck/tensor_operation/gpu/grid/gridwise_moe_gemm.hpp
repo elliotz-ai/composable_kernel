@@ -1626,6 +1626,18 @@ struct GridwiseMoeGemm : public GridwiseGemm_xdl_cshuffle_base<
                                     tensor_operation::element_wise::Gelu{}(gate, gate);
                                     c_thread_buf_fp32(cidx) = gate * up;
                                 }
+                                else if(ActivationOperation == Activation::gelu_tanh_and_mul)
+                                {
+                                    float gate = c_thread_buf[cidx];
+                                    float up   = c_thread_buf_up[cidx];
+                                    if constexpr(MulRoutedWeight)
+                                    {
+                                        gate = gate * topk_weights.template AsType<float>()[m4];
+                                        up   = up * topk_weights.template AsType<float>()[m4];
+                                    }
+                                    tensor_operation::element_wise::FastGelu{}(gate, gate);
+                                    c_thread_buf_fp32(cidx) = gate * up;
+                                }
                                 else if constexpr(ActivationOperation ==
                                                   Activation::swiglustep_and_mul)
                                 {
@@ -2181,6 +2193,18 @@ struct GridwiseMoeGemm : public GridwiseGemm_xdl_cshuffle_base<
                                         up   = up * topk_weights.template AsType<float>()[m4];
                                     }
                                     tensor_operation::element_wise::Gelu{}(gate, gate);
+                                    c_thread_buf_fp32(cidx) = gate * up;
+                                }
+                                else if(ActivationOperation == Activation::gelu_tanh_and_mul)
+                                {
+                                    float gate = c_thread_buf[cidx];
+                                    float up   = c_thread_buf_up[cidx];
+                                    if constexpr(MulRoutedWeight)
+                                    {
+                                        gate = gate * topk_weights.template AsType<float>()[m4];
+                                        up   = up * topk_weights.template AsType<float>()[m4];
+                                    }
+                                    tensor_operation::element_wise::FastGelu{}(gate, gate);
                                     c_thread_buf_fp32(cidx) = gate * up;
                                 }
                                 else if constexpr(ActivationOperation ==
