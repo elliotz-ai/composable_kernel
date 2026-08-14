@@ -1642,6 +1642,23 @@ struct GridwiseMoeGemmBlockScale
                                 tensor_operation::element_wise::Gelu{}(gate, gate);
                                 c_thread_buf(cidx) = gate * up;
                             }
+                            else if(ActivationOperation == Activation::gelu_tanh_and_mul)
+                            {
+                                float gate = c_thread_buf[cidx];
+                                float up   = c_thread_buf_up[cidx];
+                                if constexpr(MulRoutedWeight)
+                                {
+                                    gate = gate * topk_weight;
+                                    up   = up * topk_weight;
+                                }
+                                if constexpr(is_same_v<remove_cvref_t<BDataType>, pk_i4_t>)
+                                {
+                                    gate *= 16;
+                                    up *= 16;
+                                }
+                                tensor_operation::element_wise::FastGelu{}(gate, gate);
+                                c_thread_buf(cidx) = gate * up;
+                            }
                         }
                         else
                         {
@@ -2188,6 +2205,23 @@ struct GridwiseMoeGemmBlockScale
                                     up *= 16;
                                 }
                                 tensor_operation::element_wise::Gelu{}(gate, gate);
+                                c_thread_buf(cidx) = gate * up;
+                            }
+                            else if(ActivationOperation == Activation::gelu_tanh_and_mul)
+                            {
+                                float gate = c_thread_buf[cidx];
+                                float up   = c_thread_buf_up[cidx];
+                                if constexpr(MulRoutedWeight)
+                                {
+                                    gate = gate * topk_weight;
+                                    up   = up * topk_weight;
+                                }
+                                if constexpr(is_same_v<remove_cvref_t<BDataType>, pk_i4_t>)
+                                {
+                                    gate *= 16;
+                                    up *= 16;
+                                }
+                                tensor_operation::element_wise::FastGelu{}(gate, gate);
                                 c_thread_buf(cidx) = gate * up;
                             }
                         }
